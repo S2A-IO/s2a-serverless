@@ -1,5 +1,5 @@
 {
-  "name": "@s2a/serverless",
+  "name": "@s2a-serverless",
   "version": "1.0.0",
   "description": "Repository for S2A lambda functions",
   "keywords": [
