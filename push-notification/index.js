@@ -4,7 +4,7 @@
  * @author Copyright RIKSOF (Private) Limited.
  */
 const env = process.env;
-const PushNotification = require( 'fcm-push' );
+const PushNotification = require('./fcm-push-notification');
 
 /**
  * This function is the entry point for serverless function.
