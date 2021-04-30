@@ -57,7 +57,7 @@ function sendSMS( client, current ) {
 
   // Throw Validation error if exist.
   if ( error ) {
-    error.status = TwilioConstructor.BAD_REQUEST;
+    error.status = BAD_REQUEST;
     return Promise.reject( error );
   }
 
