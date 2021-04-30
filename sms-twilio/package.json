@@ -1,0 +1,46 @@
+{
+  "name": "@s2a/twilio-sms",
+  "version": "1.0.0",
+  "description": "twilio-sms is a module used to send sms.",
+  "keywords": [
+    "cloud functions",
+    "sms",
+    "twilio-sms",
+    "sms",
+    "notification"
+  ],
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/S2A-IO/twilio-sms.git"
+  },
+  "scripts": {},
+  "author": {
+    "name": "RIKSOF (Private) Limited",
+    "email": "info@riksof.com"
+  },
+  "contributors": [
+    {
+      "name": "Khurram Ali",
+      "email": "info@riksof.com"
+    },
+    {
+      "name": "Awais Khan",
+      "email": "info@riksof.com"
+    },
+    {
+      "name": "Anas Ahmed",
+      "email": "info@riksof.com"
+    }
+  ],
+  "homepage": "https://s2a.io",
+  "peerDependencies": {
+    "twilio": "3.18.0"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+    "mocha": "^5.2.0",
+    "mocha-jsdom": "~1.1.0"
+  }
+}
