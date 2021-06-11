@@ -1,0 +1,14 @@
+{
+  "name": "slack-send-messages",
+  "version": "1.0.0",
+  "description": "SendPostMessageHandler is a serverless function that is use for send messages to the slack channel or user by using following params Bot/App token, method name and payload.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@slack/web-api": "6.2.3"
+  }
+}
