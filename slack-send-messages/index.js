@@ -52,7 +52,7 @@ function postMessage( token, method, payload ) {
  *
  * @returns {undefined} None.
  */
- module.exports.handler = function slack( data, context, callback ) {
+ module.exports.handler = function SendPostMessageHandler( data, context, callback ) {
   let p = [];
   if ( Array.isArray( data.current ) ) {
     for ( let i = 0; i < data.current.length; i++ ) {
