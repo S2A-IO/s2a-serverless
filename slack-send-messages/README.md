@@ -17,6 +17,13 @@ npm install @slack/web-api
 Sends a message to a channel.
 see details: [chat.postMessage](https://api.slack.com/methods/chat.postMessage)
 
+##### packages to add
+
+Add "@slack/web-api": "6.2.4" on main package.json file
+
+##### constants to add on build-args
+
+Add slackToken on build-args.json // example: slackToken":"xoxb-2185005228672-2185029079728-KAQyumb4WqzYVfWuNb275H3c"
 ## Usage
 
 ```javascript
