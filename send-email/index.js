@@ -3,11 +3,17 @@
 /**
  * @author Copyright RIKSOF (Private) Limited.
  */
-const NodeMailer = require('nodemailer');
-const SmtpTransport = require('nodemailer-smtp-transport');
-const env = process.env;
+const nodemailer = require( 'nodemailer' );
+const aws = require( '@aws-sdk/client-ses' );
+
+// Constants.
+const API_VERSION = '2010-12-01';
 const BAD_GATEWAY = 502;
 const BAD_REQUEST = 400;
+const ERR_INVALID_FROM = 'A valid from address was not provided';
+const ERR_INVALID_TO = 'Please provide a to address for the email';
+const ERR_INVALID_SUBJECT = 'Please provide a subject for the email';
+const ERR_INVALID_MESSAGE = 'Please provide a message for the email';
 
 /**
  * This function is the entry point for serverless function.
@@ -20,15 +26,20 @@ const BAD_REQUEST = 400;
  * @returns {undefined} None.
  */
 module.exports.handler = function SendEmailHandler( data, context, callback ) {
-  let transporter = NodeMailer.createTransport(SmtpTransport({ // create transporter object using the default SMTP
-    service: env.service ? env.service : data.env.service,
-    host: env.host ? env.host : data.env.host,
-    port: parseInt(env.port ? env.port : data.env.port, 10),
-    auth: {
-      user: env.user ? env.user : data.env.user,
-      pass: env.pass ? env.pass : data.env.pass
-    }
-  }));
+  // Setup the credentials to use for this request.
+  process.env.AWS_ACCESS_KEY_ID = data.env.user;
+  process.env.AWS_SECRET_ACCESS_KEY = data.env.pass;
+
+  // Setup SES
+  const ses = new aws.SES({
+    apiVersion: API_VERSION,
+    region: data.env.host
+  });
+
+  // Create Nodemailer SES transporter
+  const transporter = nodemailer.createTransport({
+    SES: { ses, aws },
+  });
 
   let p = [];
   if ( Array.isArray( data.current ) ) {
@@ -40,55 +51,68 @@ module.exports.handler = function SendEmailHandler( data, context, callback ) {
     p = sendEmail( transporter, data.current );
   }
   return p.then(function AfterEmailSent( res ) {
+    console.log( 'Email successfully', res );
     callback( null, res );
   }).catch(function OnEmailError( error ) {
+    console.log( 'Email error', error );
     callback( error, null );
   });
 };
 
+/**
+ * This function actually sends the email.
+ *
+ * @param {any} transporter               Nodemailer transporter to use for
+ *                                        sending of email.
+ * @param {any} current                   Current document that contains information
+ *                                        on the email to be sent.
+ *
+ * @returns {Promise<any>} info           Info on email sent.
+ */
 function sendEmail( transporter, current ) {
-  return new Promise(function OnPromise( resolve, reject ) {
-    // Initialize error as empty.
+  return new Promise(function OnSendEmailPromise( resolve, reject ) {
     let error = null;
-    // Initialize mailOptions as empty.
-    let mailOptions = {};
-    // Validate the param from constains value
-    if (!current.from) error = new Error('Please provide a from address for the email');
-    // Validate the param to constains value
-    if (!current.to) error = new Error('Please provide a to address for the email');
-    // Validate the param subject constains value
-    if (!current.subject) error = new Error('Please provide a subject for the email');
-    // Validate the param message constains value
-    if (!current.message) error = new Error('Please provide a message for the email');
-    // Throw Validation error if exist.
-    if (error) {
+
+    // Make sure the required fields have been provided.
+    if ( current.from == null ) error = new Error( ERR_INVALID_FROM );
+    else if ( current.to == null ) error = new Error( ERR_INVALID_TO );
+    else if ( current.subject == null ) error = new Error( ERR_INVALID_SUBJECT );
+    else if ( current.message == null ) error = new Error( ERR_INVALID_MESSAGE );
+
+    // Throw Validation error if an error occurred in one of the cases above.
+    if ( error != null ) {
       error.status = BAD_REQUEST;
       reject(error);
     }
-    // sender address
-    mailOptions.from = current.from;
-    // list of recipients
-    mailOptions.to = current.to;
-    // Subject content
-    mailOptions.subject = current.subject;
-    // Check text is html or plaintext
-    if ( current.isHtml ) mailOptions.html = current.message;
-    else mailOptions.text = current.message;
-    // Checks the param cc constains value
-    if ( current.cc ) mailOptions.cc = current.cc;
-    // Checks the param bcc constains value
-    if ( current.bcc ) mailOptions.bcc = current.bcc;
-    // Checks the param replyTo constains value
-    if ( current.replyTo ) mailOptions.replyTo = current.replyTo;
-    // Checks the param attachments constains array Objects
-    if ( current.attachments && current.attachments.length ) mailOptions.attachments = current.attachments;
-    transporter.sendMail(mailOptions, function SendMail( error, info ) {
+
+    // We are here implies, request is valid and we can initialize params with
+    // mandatory information.
+    const params = {
+      from: current.from,
+      to: current.to,
+      subject: current.subject
+    };
+
+    // Set message based on whether we are send html or normal text email.
+    if ( current.isHtml ) params.html = current.message;
+    else params.text = current.message;
+
+    // Set optional values as provided.
+    if ( current.cc != null ) params.cc = current.cc;
+    if ( current.bcc != null ) params.bcc = current.bcc;
+    if ( current.attachments != null && current.attachments.length > 0 ) params.attachments = current.attachments;
+    if ( current.replyTo != null ) params.replyTo = current.replyTo;
+    if ( current.inReplyTo != null ) params.inReplyTo = current.inReplyTo;
+    if ( current.priority != null ) params.priority = current.priority;
+
+    // Finally send the email.
+    transporter.sendMail( params, function SendMail( error, info ) {
       if ( error ) {
-        // Is the error object if message failed
+        // If we encountered an error, reject the promise.
         error.status = BAD_GATEWAY;
         reject( error );
       } else {
-        // otherwise is the info that includes the result, the exact format depends on the transport mechanism used.
+        // Otherwise resolve promised with given information.
         resolve( info );
       }
     });
