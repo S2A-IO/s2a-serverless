@@ -49,7 +49,7 @@
     "cross-env": "6.0.3",
     "mocha": "6.2.0",
     "pdf-lib": "1.17.1",
-    "tsconfig-paths": "3.9.0",
+    "tsconfig-paths": "3.10.1",
     "ts-node": "8.3.0",
     "typescript": "3.2.4"
   }
